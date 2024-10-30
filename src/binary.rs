@@ -12,6 +12,7 @@ use weggli_ruleset::matcher::RuleMatcher;
 use weggli_ruleset::reporting::RuleMatchReport;
 use weggli_ruleset::RuleSet;
 
+use crate::common::MatchResultGroup;
 use crate::Configuration;
 
 pub fn scan(config: Configuration) -> anyhow::Result<()> {
@@ -22,17 +23,15 @@ pub fn scan(config: Configuration) -> anyhow::Result<()> {
     }
 }
 
-fn scan_single(
+fn scan_aux(
     input: impl AsRef<Path>,
     rules: RuleSet,
-) -> anyhow::Result<Vec<RuleMatchReport<'static>>> {
+) -> anyhow::Result<Vec<MatchResultGroup>> {
     let input = input.as_ref();
     let idb = IDB::open_with(&input, true).context("cannot create IDB for scan target")?;
 
     if !idb.decompiler_available() {
-        return Err(anyhow!(
-            "cannot process IDB as Hex-rays decompiler is not available"
-        ));
+        return Err(anyhow!("cannot process IDB as decompiler is not available"));
     }
 
     let mut matcher = RuleMatcher::new(rules).context("cannot construct rule matcher")?;
@@ -45,20 +44,26 @@ fn scan_single(
 
         let source = decomp.pseudocode();
 
-        matches.extend(
-            matcher
-                .matches(&source)
-                .ok()
-                .iter()
-                .flatten()
-                .map(|m| RuleMatchReport::new(m).into_owned()),
-        );
+        let Ok(results) = matcher.matches(&source) else {
+            continue;
+        };
+
+        if !results.is_empty() {
+            continue;
+        }
+
+        matches.push(MatchResultGroup::new_with(
+            f.name(),
+            f.start_address(),
+            source,
+            results,
+        ));
     }
 
     Ok(matches)
 }
 
-pub fn scan_one(config: Configuration) -> anyhow::Result<()> {
+fn scan_one(config: Configuration) -> anyhow::Result<()> {
     let input = config.input;
     let filters = config.path_filters;
 
@@ -71,33 +76,14 @@ pub fn scan_one(config: Configuration) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let idb = IDB::open_with(&input, true).context("cannot create IDB for scan target")?;
-
-    if !idb.decompiler_available() {
-        return Err(anyhow!(
-            "cannot process IDB as Hex-rays decompiler is not available"
-        ));
-    }
-
-    let mut matcher = RuleMatcher::new(config.rules).context("cannot construct rule matcher")?;
-    let mut matches = Vec::new();
-
-    for (_, f) in idb.functions() {
-        let Some(decomp) = idb.decompile(&f) else {
-            continue;
-        };
-
-        let source = decomp.pseudocode();
-
-        matches.extend(matcher.matches(&source).ok().into_iter().flatten());
-    }
+    let matches = scan_aux(input, config.rules)?;
 
     // TODO: actually report findings...
 
     Ok(())
 }
 
-pub fn scan_many(config: Configuration) -> anyhow::Result<()> {
+fn scan_many(config: Configuration) -> anyhow::Result<()> {
     struct IDAProcessor {
         rules: RuleSet,
     }
@@ -105,14 +91,14 @@ pub fn scan_many(config: Configuration) -> anyhow::Result<()> {
     impl TaskProcessor for IDAProcessor {
         type TaskError = (PathBuf, String);
         type TaskInput = PathBuf;
-        type TaskOutput = (PathBuf, Vec<RuleMatchReport<'static>>);
+        type TaskOutput = (PathBuf, Vec<MatchResultGroup>);
 
         fn process_task(
             &mut self,
             _id: Uuid,
             input: PathBuf,
-        ) -> Result<(PathBuf, Vec<RuleMatchReport<'static>>), (PathBuf, String)> {
-            match scan_single(&input, self.rules.clone()) {
+        ) -> Result<(PathBuf, Vec<MatchResultGroup>), (PathBuf, String)> {
+            match scan_aux(&input, self.rules.clone()) {
                 Ok(r) => Ok((input, r)),
                 Err(e) => Err((input, e.to_string())),
             }
@@ -120,6 +106,7 @@ pub fn scan_many(config: Configuration) -> anyhow::Result<()> {
     }
 
     struct IDAResults {
+        rules: RuleSet,
         display: bool,
         display_context: usize,
         output_is_stdout: bool,
@@ -130,7 +117,7 @@ pub fn scan_many(config: Configuration) -> anyhow::Result<()> {
         type Error = io::Error;
 
         type TaskError = (PathBuf, String);
-        type TaskOutput = (PathBuf, Vec<RuleMatchReport<'static>>);
+        type TaskOutput = (PathBuf, Vec<MatchResultGroup>);
 
         fn process_task_result(
             &mut self,
@@ -153,10 +140,11 @@ pub fn scan_many(config: Configuration) -> anyhow::Result<()> {
     });
 
     let mut processor = IDAProcessor {
-        rules: config.rules,
+        rules: config.rules.clone(),
     };
 
     let mut sink = IDAResults {
+        rules: config.rules,
         display: config.display,
         display_context: config.display_context,
         output_is_stdout: config.output_is_stdout,

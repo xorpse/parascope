@@ -13,7 +13,7 @@ pub fn scan(config: Configuration, cxx: bool) -> anyhow::Result<()> {
     }
 }
 
-pub fn scan_one(config: Configuration, cxx: bool) -> anyhow::Result<()> {
+fn scan_one(config: Configuration, cxx: bool) -> anyhow::Result<()> {
     let input = config.input;
     let filters = config.path_filters;
 
@@ -58,6 +58,6 @@ pub fn scan_one(config: Configuration, cxx: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn scan_many(config: Configuration, cxx: bool) -> anyhow::Result<()> {
+fn scan_many(config: Configuration, cxx: bool) -> anyhow::Result<()> {
     todo!()
 }

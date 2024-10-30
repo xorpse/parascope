@@ -7,8 +7,9 @@ use clap::{Arg, Command};
 use regex::RegexSet;
 use weggli_ruleset::RuleSet;
 
-pub mod binary;
-pub mod source;
+mod binary;
+mod common;
+mod source;
 
 #[derive(Clone, Copy, clap::ValueEnum)]
 enum AnalysisMode {

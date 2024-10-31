@@ -31,8 +31,10 @@ pub struct Configuration {
     pub display: bool,
     pub display_context: usize,
 
+    pub summary: bool,
+
     pub output_is_stdout: bool,
-    pub writer: Box<dyn Write + Send + 'static>,
+    pub writer: Option<Box<dyn Write + Send + 'static>>,
 }
 
 fn open_writer(output: impl AsRef<str>) -> (bool, Box<dyn Write + Send + 'static>) {
@@ -64,6 +66,18 @@ fn main() -> anyhow::Result<()> {
         .arg(
             Arg::new("path-filter")
                 .help("Restrict analysis to files matching the given regular expression")
+                .long_help(
+                    "Restrict analysis to files matching the given regular expression.
+For C/C++ analysis if no path filters are given analysis is restricted
+to a set of default file extensions:
+
+C: c, h
+C++: C, cc, cxx, cpp, H, hh, hxx, hpp, h
+
+For binary analysis, all files will be analysed. If an existing IDB is
+available, e.g., we have both file and file.i64, only the IDB will be
+used for analysis irrespective of the path filter.",
+                )
                 .long("path-filter")
                 .num_args(0..),
         )
@@ -79,8 +93,17 @@ fn main() -> anyhow::Result<()> {
                 .help("Number of lines before/after match to render")
                 .long("display-context")
                 .default_value("5")
+                .requires("display")
                 .value_parser(clap::value_parser!(usize))
                 .requires("display"),
+        )
+        .arg(
+            Arg::new("summary")
+                .help("Render tabular summary to stdout")
+                .long("summary")
+                .conflicts_with_all(["display", "display-context"])
+                .num_args(0)
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("rules")
@@ -97,8 +120,7 @@ fn main() -> anyhow::Result<()> {
         .arg(
             Arg::new("OUTPUT")
                 .help("File to write output results (JSONL)")
-                .default_value("-")
-                .required(true),
+                .required(false),
         )
         .get_matches();
 
@@ -114,11 +136,12 @@ fn main() -> anyhow::Result<()> {
     }
     let multi_input = input_path.is_dir();
 
-    let output = matches
-        .get_one::<String>("OUTPUT")
-        .expect("required; has default");
-
-    let (output_is_stdout, writer) = open_writer(output);
+    let (output_is_stdout, writer) = if let Some(output) = matches.get_one::<String>("OUTPUT") {
+        let (output_is_stdout, writer) = open_writer(output);
+        (output_is_stdout, Some(writer))
+    } else {
+        (false, None)
+    };
 
     let mode = matches
         .get_one::<AnalysisMode>("mode")
@@ -129,6 +152,13 @@ fn main() -> anyhow::Result<()> {
         .get_one::<usize>("display_context")
         .copied()
         .unwrap_or_default();
+
+    let summary = matches.get_flag("summary");
+
+    if writer.is_none() && !display && !summary {
+        eprintln!("no display or reporting options set");
+        exit(-1);
+    }
 
     let path_filters = match matches
         .get_many::<String>("path-filter")
@@ -174,6 +204,7 @@ fn main() -> anyhow::Result<()> {
         path_filters,
         display,
         display_context,
+        summary,
         output_is_stdout,
         writer,
     };

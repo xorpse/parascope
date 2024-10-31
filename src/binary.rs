@@ -9,7 +9,6 @@ use fugue_mptp::{TaskProcessor, TaskSink, Uuid};
 use idalib::idb::IDB;
 
 use weggli_ruleset::matcher::RuleMatcher;
-use weggli_ruleset::reporting::RuleMatchReport;
 use weggli_ruleset::RuleSet;
 
 use crate::common::MatchResultGroup;
@@ -23,10 +22,7 @@ pub fn scan(config: Configuration) -> anyhow::Result<()> {
     }
 }
 
-fn scan_aux(
-    input: impl AsRef<Path>,
-    rules: RuleSet,
-) -> anyhow::Result<Vec<MatchResultGroup>> {
+fn scan_aux(input: impl AsRef<Path>, rules: RuleSet) -> anyhow::Result<Vec<MatchResultGroup>> {
     let input = input.as_ref();
     let idb = IDB::open_with(&input, true).context("cannot create IDB for scan target")?;
 
@@ -63,7 +59,7 @@ fn scan_aux(
     Ok(matches)
 }
 
-fn scan_one(config: Configuration) -> anyhow::Result<()> {
+fn scan_one(mut config: Configuration) -> anyhow::Result<()> {
     let input = config.input;
     let filters = config.path_filters;
 
@@ -76,9 +72,25 @@ fn scan_one(config: Configuration) -> anyhow::Result<()> {
         return Ok(());
     }
 
-    let matches = scan_aux(input, config.rules)?;
+    let matches = scan_aux(&input, config.rules.clone())?;
 
-    // TODO: actually report findings...
+    if config.display && !config.output_is_stdout {
+        matches.iter().for_each(|result| {
+            result.display_pretty(&config.rules, &input, config.display_context)
+        });
+    }
+
+    if config.summary && !config.output_is_stdout {
+        matches
+            .iter()
+            .for_each(|result| result.display_table(&config.rules, &input));
+    }
+
+    if let Some(mut writer) = config.writer.as_mut() {
+        matches
+            .iter()
+            .try_for_each(|result| result.write_record(&config.rules, &input, &mut writer))?;
+    }
 
     Ok(())
 }
@@ -109,8 +121,9 @@ fn scan_many(config: Configuration) -> anyhow::Result<()> {
         rules: RuleSet,
         display: bool,
         display_context: usize,
+        summary: bool,
         output_is_stdout: bool,
-        writer: Box<dyn Write + Send + 'static>,
+        writer: Option<Box<dyn Write + Send + 'static>>,
     }
 
     impl TaskSink for IDAResults {
@@ -122,9 +135,36 @@ fn scan_many(config: Configuration) -> anyhow::Result<()> {
         fn process_task_result(
             &mut self,
             _id: Uuid,
-            _result: Result<Self::TaskOutput, Self::TaskError>,
+            result: Result<Self::TaskOutput, Self::TaskError>,
         ) -> Result<(), Self::Error> {
-            // TODO: actually report findings...
+            let (input, results) = match result {
+                Ok(ok) => ok,
+                Err((path, err)) => {
+                    if !self.output_is_stdout {
+                        println!("failed to analyse {}: {err}", path.display());
+                    }
+                    return Ok(());
+                }
+            };
+
+            if self.display && !self.output_is_stdout {
+                results.iter().for_each(|result| {
+                    result.display_pretty(&self.rules, &input, self.display_context)
+                });
+            }
+
+            if self.summary && !self.output_is_stdout {
+                results
+                    .iter()
+                    .for_each(|result| result.display_table(&self.rules, &input));
+            }
+
+            if let Some(mut writer) = self.writer.as_mut() {
+                results
+                    .iter()
+                    .try_for_each(|result| result.write_record(&self.rules, &input, &mut writer))?;
+            }
+
             Ok(())
         }
     }
@@ -147,6 +187,7 @@ fn scan_many(config: Configuration) -> anyhow::Result<()> {
         rules: config.rules,
         display: config.display,
         display_context: config.display_context,
+        summary: config.summary,
         output_is_stdout: config.output_is_stdout,
         writer: config.writer,
     };

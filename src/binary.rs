@@ -40,11 +40,11 @@ fn scan_aux(input: impl AsRef<Path>, rules: RuleSet) -> anyhow::Result<Vec<Match
 
         let source = decomp.pseudocode();
 
-        let Ok(results) = matcher.matches(&source) else {
+        let Ok(results) = matcher.matches_with(&source, false) else {
             continue;
         };
 
-        if !results.is_empty() {
+        if results.is_empty() {
             continue;
         }
 

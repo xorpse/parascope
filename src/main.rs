@@ -53,13 +53,16 @@ fn open_writer(output: impl AsRef<str>) -> (bool, Box<dyn Write + Send + 'static
 }
 
 fn main() -> anyhow::Result<()> {
+    // NOTE: this allows us to avoid IDA's noisy output
+    idalib::force_batch_mode();
+
     let matches = Command::new(env!("CARGO_PKG_NAME"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .version(env!("CARGO_PKG_VERSION"))
         .arg(
             Arg::new("mode")
                 .help("Analysis mode")
-                .required(true)
+                .long("mode")
                 .value_parser(clap::value_parser!(AnalysisMode))
                 .default_value("binary"),
         )
@@ -93,7 +96,6 @@ used for analysis irrespective of the path filter.",
                 .help("Number of lines before/after match to render")
                 .long("display-context")
                 .default_value("5")
-                .requires("display")
                 .value_parser(clap::value_parser!(usize))
                 .requires("display"),
         )
@@ -108,8 +110,8 @@ used for analysis irrespective of the path filter.",
         .arg(
             Arg::new("rules")
                 .help("File or directory containing wegglir rules")
-                .short('r')
                 .long("rules")
+                .short('r')
                 .required(true),
         )
         .arg(
@@ -120,6 +122,8 @@ used for analysis irrespective of the path filter.",
         .arg(
             Arg::new("OUTPUT")
                 .help("File to write output results (JSONL)")
+                .long("output")
+                .short('o')
                 .required(false),
         )
         .get_matches();
@@ -149,7 +153,7 @@ used for analysis irrespective of the path filter.",
 
     let display = matches.get_flag("display");
     let display_context = matches
-        .get_one::<usize>("display_context")
+        .get_one::<usize>("display-context")
         .copied()
         .unwrap_or_default();
 

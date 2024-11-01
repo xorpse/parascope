@@ -1,0 +1,28 @@
+id: call-to-unbounded-copy-functions
+description: call to unbounded copy functions
+severity: medium
+tags:
+- CWE-120
+- CWE-242
+- CWE-676
+check-patterns:
+- name: gets
+  regex: func=^gets$
+  pattern: |
+    { $func(); }
+- name: st(r|p)(cpy|cat)
+  regex: func=st(r|p)(cpy|cat)$
+  pattern: |
+    { $func(); }
+- name: wc(r|p)(cpy|cat)
+  regex: func=wc(r|p)(cpy|cat)$
+  pattern: |
+    { $func(); }
+- name: sprintf
+  regex: func=sprintf$
+  pattern: |
+    { $func(); }
+- name: scanf
+  regex: func=scanf$
+  pattern: |
+    { $func(); }

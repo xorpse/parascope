@@ -134,7 +134,7 @@ impl MatchResultGroup {
             let checker = rule.checks().get(result.checker).expect("valid checker");
 
             print!(
-                "[{:?}] rule {}, check {} triggered in {}",
+                "[{}] rule {}, check {} triggered in {}",
                 rule.severity(),
                 rule.id(),
                 checker.name(),
@@ -156,11 +156,15 @@ impl MatchResultGroup {
                     .result
                     .display(&self.source, display_context, display_context, true);
 
-            println!("{rendered}");
+            println!("{rendered}\n");
         }
     }
 
     pub(crate) fn display_table(&self, rules: &RuleSet, origin: impl AsRef<Path>) {
+        if self.results.is_empty() {
+            return;
+        }
+
         let origin = origin.as_ref();
         println!(
             "{}",

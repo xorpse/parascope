@@ -17,12 +17,12 @@ regex = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tabled = "0.16"
-weggli-ruleset = "0.1"
+weggli-ruleset = "0.1.5"
 wegglix = "0.2"
 
 [build-dependencies]
 idalib-build = "0.1"
 
 [patch.crates-io]
-idalib = { git = "ssh://github.com/binarly-io/idalib.git", branch = "feature/hexrays" }
-idalib-build = { git = "ssh://github.com/binarly-io/idalib.git", branch = "feature/hexrays" }
+idalib = { path = "../idalib-brly/idalib" } #git = "ssh://github.com/binarly-io/idalib.git", branch = "feature/hexrays" }
+idalib-build = { path = "../idalib-brly/idalib-build" } #git = "ssh://github.com/binarly-io/idalib.git", branch = "feature/hexrays" }

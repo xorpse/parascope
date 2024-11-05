@@ -24,7 +24,7 @@ pub fn scan(config: Configuration) -> anyhow::Result<()> {
 
 fn scan_aux(input: impl AsRef<Path>, rules: RuleSet) -> anyhow::Result<Vec<MatchResultGroup>> {
     let input = input.as_ref();
-    let idb = IDB::open_with(&input, true).context("cannot create IDB for scan target")?;
+    let idb = IDB::open_with(&input, true, true).context("cannot create IDB for scan target")?;
 
     if !idb.decompiler_available() {
         return Err(anyhow!("cannot process IDB as decompiler is not available"));

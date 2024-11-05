@@ -63,6 +63,7 @@ fn main() -> anyhow::Result<()> {
             Arg::new("mode")
                 .help("Analysis mode")
                 .long("mode")
+                .short('m')
                 .value_parser(clap::value_parser!(AnalysisMode))
                 .default_value("binary"),
         )

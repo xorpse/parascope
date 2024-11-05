@@ -8,10 +8,14 @@ rules and scan source code and binaries in parallel!
 ```sh
 Weggli(r) ruleset scanner for binaries and source code
 
-Usage: wegglir [OPTIONS] --rules <rules> <mode> <INPUT> [OUTPUT]
+Usage: wegglir [OPTIONS] --rules <rules> <INPUT>
 
 Arguments:
-  <mode>
+  <INPUT>
+          File or directory to scan
+
+Options:
+  -m, --mode <mode>
           Analysis mode
 
           [default: binary]
@@ -21,13 +25,6 @@ Arguments:
           - c:      Source code analysis mode (C)
           - cxx:    Source code analysis mode (C++)
 
-  <INPUT>
-          File or directory to scan
-
-  [OUTPUT]
-          File to write output results (JSONL)
-
-Options:
       --path-filter [<path-filter>...]
           Restrict analysis to files matching the given regular expression.
           For C/C++ analysis if no path filters are given analysis is restricted
@@ -53,6 +50,9 @@ Options:
 
   -r, --rules <rules>
           File or directory containing wegglir rules
+
+  -o, --output <OUTPUT>
+          File to write output results (JSONL)
 
   -h, --help
           Print help (see a summary with '-h')

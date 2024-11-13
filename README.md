@@ -1,14 +1,31 @@
-# wegglir
+# parascope
 
-Weggli(r) ruleset scanner for binaries and source code. Organise your weggli
+Weggli ruleset scanner for binaries and source code. Organise your weggli
 rules and scan source code and binaries in parallel!
 
-## Usage
+## Build/installation
+
+To build and install parascope requires IDA Pro v9.0 and access to the
+latest SDK.
+
+Install via crates.io:
 
 ```sh
-Weggli(r) ruleset scanner for binaries and source code
+export IDASDKDIR=/path/to/sdk
+cargo install parascope
+```
 
-Usage: wegglir [OPTIONS] --rules <rules> <INPUT>
+Build/install from source:
+
+```sh
+export IDASDKDIR=/path/to/sdk
+cargo install --path .
+```
+
+```sh
+Weggli ruleset scanner for source code and binaries
+
+Usage: parascope [OPTIONS] --rules <rules> <INPUT>
 
 Arguments:
   <INPUT>
@@ -63,10 +80,10 @@ Options:
 
 ## Rules
 
-We use [weggli-ruleset] to help manage weggli patterns. It provides a
-yaml-based rule format that allows different (related) patterns to be grouped
-along with metadata useful for categorising and triaging matches. For example,
-we can encode the patterns from
+We use [weggli-ruleset](https://github.com/xorpse/weggli-ruleset.git) to help
+manage weggli patterns. It provides a yaml-based rule format that allows
+different (related) patterns to be grouped along with metadata useful for
+categorising and triaging matches. For example, we can encode the patterns from
 [here](https://github.com/0xdea/weggli-patterns?tab=readme-ov-file#call-to-unbounded-copy-functions-cwe-120-cwe-242-cwe-676),
 as follows:
 

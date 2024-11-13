@@ -22,6 +22,25 @@ export IDASDKDIR=/path/to/sdk
 cargo install --path .
 ```
 
+## Examples and usage
+
+Scan a single binary and output the rule matches to stdout:
+```
+parascope --display -r rules /path/of/binary
+```
+
+Scan all binaries in the given directory and stream rule matches to results.jsonl:
+```
+parascope -o results.jsonl -r rules /directory/of/binaries
+```
+
+Scan the C source code in the given directory and stream rule matches to results.jsonl:
+```
+parascope -m c -o results.jsonl -r rules /directory/of/source-code
+```
+
+Complete set of capabilities:
+
 ```sh
 Weggli ruleset scanner for source code and binaries
 

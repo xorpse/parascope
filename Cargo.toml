@@ -4,7 +4,9 @@ version = "0.1.0"
 authors = ["Sam L. Thomas <s@ghost.sh>"]
 description = "Weggli ruleset scanner for source code and binaries"
 license = "MIT"
+documentation = "https://xv.ax/parascope/parascope"
 repository = "https://github.com/xorpse/parascope.git"
+readme = "./README.md"
 edition = "2021"
 build = "build.rs"
 

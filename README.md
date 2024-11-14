@@ -136,3 +136,13 @@ check-patterns:
   pattern: |
     { $func(); }
 ```
+
+### Rulesets & Resources
+
+Below is a list of resources containing weggli patterns/rules that can easily
+be ported to parascope rules:
+
+- [weggli-patterns](https://github.com/0xdea/weggli-patterns) and [A collection of weggli patterns for C/C++ vulnerability research](https://security.humanativaspa.it/a-collection-of-weggli-patterns-for-c-cpp-vulnerability-research/) by [raptor/@0xdea](https://github.com/0xdea)
+- [weggli-patterns](https://github.com/plowsec/weggli-patterns) by [volodya/@plowsec](https://github.com/plowsec)
+- [Playing with Weggli](https://dustri.org/b/playing-with-weggli.html) by [Julien Voisin](https://dustri.org/)
+- [Weggli rules (SSTIC 2013)](https://github.com/synacktiv/Weggli_rules_SSTIC2023) by [Synacktiv](https://github.com/synacktiv)

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="180" fill="#1a1a1a"/>
+  
+  <!-- Binary data streams -->
+  <g fill="#00ff00" opacity="0.2">
+    <text x="60" y="140" font-family="monospace" font-size="14">
+      01001010 10101
+    </text>
+    <text x="240" y="180" font-family="monospace" font-size="14">
+      11010101 01010
+    </text>
+    <text x="120" y="260" font-family="monospace" font-size="14">
+      10101010 11100
+    </text>
+  </g>
+
+  <!-- Scope outer ring -->
+  <circle cx="200" cy="200" r="150" fill="none" stroke="#4a90e2" stroke-width="4"/>
+  
+  <!-- Crosshair lines -->
+  <g stroke="#4a90e2" stroke-width="2">
+    <line x1="200" y1="80" x2="200" y2="320"/>
+    <line x1="80" y1="200" x2="320" y2="200"/>
+  </g>
+  
+  <!-- Scanning animation circles -->
+  <circle cx="200" cy="200" r="100" fill="none" stroke="#4a90e2" stroke-width="2" opacity="0.5">
+    <animate attributeName="r" values="60;100;60" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.8;0.2;0.8" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Target symbol -->
+  <g stroke="#ff3366" stroke-width="3" fill="none">
+    <circle cx="200" cy="200" r="30"/>
+    <circle cx="200" cy="200" r="15"/>
+    <path d="M200,185 L200,215 M185,200 L215,200"/>
+  </g>
+  
+  <!-- Shield outline for security -->
+  <path d="M200,100 L260,130 L260,200 C260,240 230,270 200,290 C170,270 140,240 140,200 L140,130 Z" 
+        fill="none" stroke="#4a90e2" stroke-width="3" opacity="0.3"/>
+  
+
+</svg>

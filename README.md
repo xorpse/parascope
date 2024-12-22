@@ -1,7 +1,21 @@
 # parascope
 
+[![crates.io](https://img.shields.io/crates/v/parascope)](https://crates.io/crates/parascope)
+[![license](https://img.shields.io/crates/l/parascope)](https://github.com/xorpse/parascope)
+[![crates.io downloads](https://img.shields.io/crates/d/parascope)](https://crates.io/crates/parascope)
+
+<!--
+<p align="center">
+  <img src="assets/parascope-logo.svg" width="200" height="200" alt="parascope logo">
+</p>
+-->
+
 Weggli ruleset scanner for binaries and source code. Organise your weggli
 rules and scan source code and binaries in parallel!
+
+<p align="center">
+  <img src="assets/parascope-demo.gif" width="800" alt="parascope demo">
+</p>
 
 ## Build/installation
 
@@ -11,6 +25,7 @@ latest SDK.
 Install via crates.io:
 
 ```sh
+export IDADIR=/path/to/ida # optional
 export IDASDKDIR=/path/to/sdk
 cargo install parascope
 ```
@@ -18,6 +33,7 @@ cargo install parascope
 Build/install from source:
 
 ```sh
+export IDADIR=/path/to/ida # optional
 export IDASDKDIR=/path/to/sdk
 cargo install --path .
 ```

@@ -9,7 +9,7 @@ repository = "https://github.com/xorpse/parascope.git"
 readme = "./README.md"
 edition = "2021"
 build = "build.rs"
-exclude = ["rules", "tests"]
+exclude = ["assets", "rules", "tests"]
 
 [dependencies]
 anyhow = "1"

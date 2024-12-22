@@ -1,6 +1,6 @@
 [package]
 name = "parascope"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sam L. Thomas <s@ghost.sh>"]
 description = "Weggli ruleset scanner for source code and binaries"
 license = "MIT"
@@ -14,7 +14,7 @@ exclude = ["rules", "tests"]
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
-idalib = "0.2"
+idalib = "0.4"
 fugue-mptp = "0.3"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
@@ -24,4 +24,4 @@ weggli-ruleset = "0.1.5"
 wegglix = "0.2"
 
 [build-dependencies]
-idalib-build = "0.2"
+idalib-build = "0.4"

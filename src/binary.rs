@@ -34,7 +34,7 @@ fn scan_aux(input: impl AsRef<Path>, rules: RuleSet) -> anyhow::Result<Vec<Match
     let mut matches = Vec::new();
 
     for (_, f) in idb.functions() {
-        let Some(decomp) = idb.decompile(&f) else {
+        let Ok(decomp) = idb.decompile(&f) else {
             continue;
         };
 

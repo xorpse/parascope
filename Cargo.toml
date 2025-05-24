@@ -1,20 +1,22 @@
 [package]
 name = "parascope"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Sam L. Thomas <s@ghost.sh>"]
 description = "Weggli ruleset scanner for source code and binaries"
 license = "MIT"
 documentation = "https://xv.ax/parascope"
+keywords = ["ida", "ida-pro", "idalib", "vulnerability", "weggli"]
+categories = ["security"]
 repository = "https://github.com/xorpse/parascope.git"
 readme = "./README.md"
-edition = "2021"
+edition = "2024"
 build = "build.rs"
 exclude = ["assets", "rules", "tests"]
 
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
-idalib = "0.4"
+idalib = "0.6"
 fugue-mptp = "0.3"
 regex = "1"
 serde = { version = "1", features = ["derive"] }
@@ -24,4 +26,4 @@ weggli-ruleset = "0.1.5"
 wegglix = "0.2"
 
 [build-dependencies]
-idalib-build = "0.4"
+idalib-build = "0.6"

@@ -19,14 +19,13 @@ rules and scan source code and binaries in parallel!
 
 ## Build/installation
 
-To build and install parascope requires IDA Pro v9.0 and access to the
+To build and install parascope requires IDA Pro v9.2 and access to the
 latest SDK.
 
 Install via crates.io:
 
 ```sh
 export IDADIR=/path/to/ida # optional
-export IDASDKDIR=/path/to/sdk
 cargo install parascope
 ```
 
@@ -34,7 +33,6 @@ Build/install from source:
 
 ```sh
 export IDADIR=/path/to/ida # optional
-export IDASDKDIR=/path/to/sdk
 cargo install --path .
 ```
 

@@ -1,0 +1,28 @@
+{
+  "IDAMetadataDescriptorVersion": 1,
+  "plugin": {
+    "name": "parascope",
+    "entryPoint": "ida_plugin_stub.py",
+    "categories": ["vulnerability-research-and-exploit-development"],
+    "idaVersions": ["9.2"],
+    "description" : "Weggli ruleset scanner for source code and binaries using idalib",
+    "license": "MIT",
+    "version": "0.3.0",
+    "logoPath": "parascope-logo.svg",
+    "urls": {
+      "repository": "https://github.com/xorpse/parascope"
+    },
+    "authors": [{
+      "name": "Sam L. Thomas",
+      "email": "s@ghost.sh"
+    }],
+    "keywords": ["rust", "idalib", "weggli", "vulnerability-research"],
+    "pythonDependencies": [
+      "parascope==0.3.0"
+    ],
+    "platforms": [
+      "linux-x86_64",
+      "macos-aarch64"
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+name: build
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux_2_28_x86_64
+
+    env:
+      CARGO_TERM_COLOR: always
+      PYTHON_BIN: /opt/python/cp311-cp311/bin/python
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install Rust (via rustup)
+        shell: bash
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          yum install -y jq llvm clang
+
+      - name: Install Python build dependencies
+        shell: bash
+        run: |
+          $PYTHON_BIN -m pip install --upgrade pip
+          $PYTHON_BIN -m pip install wheel auditwheel
+
+      - name: Generate lock file
+        shell: bash
+        run: cargo generate-lockfile
+
+      - name: Compute package version
+        shell: bash
+        run: |
+          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
+          echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build Rust binary (release, stub linkage)
+        shell: bash
+        env:
+          IDALIB_FORCE_STUB_LINKAGE: "1"
+        run: cargo build --release
+
+      - name: Build Python wheel skeleton
+        shell: bash
+        run: |
+          mkdir -p target/wheels
+          $PYTHON_BIN -m pip wheel --no-deps ./dist/pypi -w ./target/wheels
+
+      - name: Merge Rust binary into wheel
+        shell: bash
+        run: |
+          cd target/wheels
+
+          # unpack the wheel built by the ./dist/pypi package
+          $PYTHON_BIN -m wheel unpack parascope-${PACKAGE_VERSION}*.whl
+
+          # copy the compiled Rust binary into .data/scripts as rparascope
+          mkdir -p parascope-${PACKAGE_VERSION}/parascope-${PACKAGE_VERSION}.data/scripts
+          cp ../release/parascope parascope-${PACKAGE_VERSION}/parascope-${PACKAGE_VERSION}.data/scripts/rparascope
+
+          # repack
+          $PYTHON_BIN -m wheel pack parascope-${PACKAGE_VERSION} -d .
+
+      - name: Repair wheel with auditwheel (manylinux tagging & bundling)
+        shell: bash
+        run: |
+          cd target/wheels
+          WHEEL=$(ls parascope-${PACKAGE_VERSION}-*.whl)
+          echo "Repairing $WHEEL with auditwheel"
+          $PYTHON_BIN -m auditwheel repair parascope-${PACKAGE_VERSION}-*.whl -w .
+          echo "Removing original wheel"
+          rm "$WHEEL"
+
+      - name: Upload Linux wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-linux
+          path: target/wheels/*.whl
+
+  build-macos:
+    runs-on: macOS-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install Rust (via rustup)
+        shell: bash
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install wheel
+
+      - name: Generate lock file
+        shell: bash
+        run: cargo generate-lockfile
+
+      - name: Compute package version
+        shell: bash
+        run: |
+          VERSION=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
+          echo "PACKAGE_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build Rust binary (release, stub linkage)
+        env:
+          IDALIB_FORCE_STUB_LINKAGE: "1"
+        run: cargo build --release
+
+      - name: Detect macOS arch from binary
+        shell: bash
+        run: |
+          ARCH=$(lipo -info target/release/parascope | grep -oE 'x86_64|arm64')
+          if [ "$ARCH" = "x86_64" ]; then
+            PLATFORM_TAG="macosx_10_9_x86_64"
+          elif [ "$ARCH" = "arm64" ]; then
+            PLATFORM_TAG="macosx_11_0_arm64"
+          else
+            echo "Unknown arch from lipo: $ARCH"
+            exit 1
+          fi
+          echo "PLATFORM_TAG=$PLATFORM_TAG" >> "$GITHUB_ENV"
+
+      - name: Build Python wheel skeleton
+        run: |
+          mkdir -p target/wheels
+          python -m pip wheel --no-deps ./dist/pypi -w ./target/wheels
+
+      - name: Merge Rust binary into wheel
+        run: |
+          cd target/wheels
+          python -m wheel unpack parascope-${PACKAGE_VERSION}*.whl
+
+          mkdir -p parascope-${PACKAGE_VERSION}/parascope-${PACKAGE_VERSION}.data/scripts
+          cp ../release/parascope parascope-${PACKAGE_VERSION}/parascope-${PACKAGE_VERSION}.data/scripts/rparascope
+
+          python -m wheel pack parascope-${PACKAGE_VERSION} -d .
+
+      - name: Retag macOS wheel with platform tag
+        shell: bash
+        run: |
+          cd target/wheels
+          WHEEL=$(ls parascope-${PACKAGE_VERSION}-*.whl)
+          echo "Retagging $WHEEL to platform $PLATFORM_TAG"
+          python -m wheel tags --platform-tag "$PLATFORM_TAG" "$WHEEL"
+          echo "Removing original wheel"
+          rm "$WHEEL"
+
+      - name: Upload macOS wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos
+          path: target/wheels/*.whl

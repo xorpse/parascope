@@ -11,7 +11,11 @@ repository = "https://github.com/xorpse/parascope.git"
 readme = "./README.md"
 edition = "2024"
 build = "build.rs"
-exclude = ["assets", "rules", "tests"]
+exclude = ["assets", "rules", "tests", "python", "plugin"]
+
+[[bin]]
+name = "parascope"
+path = "src/main.rs"
 
 [dependencies]
 anyhow = "1"
